@@ -1,22 +1,30 @@
+# parameters available:
+#	host
+#	docroot
+#	override
+#	admin
+#	override-docroot
+#	override-cgi
+
 <VirtualHost *:80>
-	ServerAdmin webmaster@localhost
-	ServerName {servername}
+	ServerAdmin {admin}
+	ServerName {host}
 	
 	DocumentRoot {docroot}
 	<Directory />
 		Options FollowSymLinks
-		AllowOverride {override}
+		AllowOverride None
 	</Directory>
 	<Directory {docroot}>
 		Options Indexes FollowSymLinks MultiViews
-		AllowOverride None
+		AllowOverride {override-docroot}
 		Order allow,deny
 		allow from all
 	</Directory>
 
 	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
 	<Directory "/usr/lib/cgi-bin">
-		AllowOverride None
+		AllowOverride {override-cgi}
 		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
 		Order allow,deny
 		Allow from all
