@@ -2,18 +2,16 @@
 
 import os, sys, re, argsdict
 
-argstuple = (('host', 'Apache virtual host name'), ('docroot', 'Apache document root.'), ('admin','Admin\'s contact email', 'webmaster@localhost'), ('override-docroot', 'AllowOverride for DocumentRoot', 'All'), ('override-cgi', 'AllowOverride for cgi-bin', 'All'), ('host-template', 'Template for host configuration (./config.template by default)', 'config.template'))
+from optparse import OptionParser
+parser = OptionParser()
+
+
+argstuple = (('server', 'Apache virtual host name'), ('docroot', 'Apache document root.'), ('admin','Admin\'s contact email', 'webmaster@localhost'), ('override-docroot', 'AllowOverride for DocumentRoot', 'All'), ('override-cgi', 'AllowOverride for cgi-bin', 'All'), ('host-template', 'Template for host configuration (./config.template by default)', 'config.template'))
 
 args = dict((i[0], i[2]) for i in argstuple if len(i) == 3)
 req_args = [i[0] for i in argstuple if len(i) < 3]
 
 serv = 'apache2'
-
-help_text = """
-	Usage: vhost --host=<hostname> [--docroot=<document root>]
-
-	Parameters:
-""" + '\n'.join('\t\t--{0}=...\t{1}'.format(k, v) for k, v in args)
 
 
 
