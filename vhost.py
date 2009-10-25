@@ -2,26 +2,27 @@
 
 import os, sys, re, argsdict
 
-args = {'admin': 'webmaster@localhost', 'override-docroot': 'All', 'override-cgi': 'All', 'host-template': 'config.template'}
-req_args = ['host', 'docroot']
+argstuple = (('host', 'Apache virtual host name'), ('docroot', 'Apache document root.'), ('admin','Admin\'s contact email', 'webmaster@localhost'), ('override-docroot', 'AllowOverride for DocumentRoot', 'All'), ('override-cgi', 'AllowOverride for cgi-bin', 'All'), ('host-template', 'Template for host configuration (./config.template by default)', 'config.template'))
+
+args = dict((i[0], i[2]) for i in argstuple if len(i) == 3)
+req_args = [i[0] for i in argstuple if len(i) < 3]
+
 serv = 'apache2'
 
-def help():
-	return """
+help_text = """
 	Usage: vhost --host=<hostname> [--docroot=<document root>]
 
 	Parameters:
-		--host			Apache virtual host name
-		--docroot		Apache document root.
-		--admin			Admin's contact email
-		--override-docroot	AllowOverride for DocumentRoot
-		--override-cgi		AllowOverride for cgi-bin
-		--host-template		Template for host configuration (./config.template by default)
-		"""
+""" + '\n'.join('\t\t--{0}=...\t{1}'.format(k, v) for k, v in args)
 
-def quit(msg):
+
+
+def help():
+	return 
+
+def quit(msg, status = 0):
 	print msg
-	sys.exit()
+	sys.exit(status)
 
 if __name__ == '__main__':
 	args.update(argsdict.args(args.keys() + req_args))
@@ -34,18 +35,24 @@ if __name__ == '__main__':
 	
 	if len(where) == 0:
 		quit('No apache config found')
+
+	# check if there's no other same named host
+	hosts = [f for i in where for f in os.listdir(i + '/sites-enabled') if f[-1] != '~']
+	for i in hosts:
+		try:
+			with open(i) as config:
+				for l in config:
+					if re.split('\s+', l.strip('\t ')) == ['ServerName', args['host']]:
+						quit()
+		except IOError:
+			
 	
-	# need to check if docroot not exists or is empty
+	# need to check if docroot does not exists or is empty
 	if os.path.lexists(args['docroot']):
 		if not os.path.isdir(args['docroot']):
-			quit('docroot was a file or a link (\'{0}\')'.format(args['docroot']))
+			quit('docroot was a file or a link (\'{0}\')'.format(args['docroot']), 1)
 		if os.listdir(args['docroot']) != []:
-			quit('docroot parameter was a non-empty directory (\'{0}\')'.format(args['docroot']))
-	else:
-		# try to create directory
-		
-	
-	# check if there's no other same named host
+			quit('docroot parameter was a non-empty directory (\'{0}\')'.format(args['docroot']), 1)
 	
 	
 	# create apache vhost file
@@ -53,9 +60,9 @@ if __name__ == '__main__':
 		with open(args['host-template']) as conf_file:
 			vhost_cfg = ''.join(conf_file).format(**args)
 	except IOError:
-		quit('Can\'t open file \'{0}\'. Error #{1[0]}: {1[1]}. {2}'.format(args['host-template'], sys.exc_info()[1].args, (sys.exc_info()[1][0] == 13 and 'Check file access permissions.' or '')))
+		quit('Can\'t open file \'{0}\'. Error #{1[0]}: {1[1]}. {2}'.format(args['host-template'], sys.exc_info()[1].args, (sys.exc_info()[1][0] == 13 and 'Check file access permissions.' or '')), 1)
 	except KeyError:
-		quit('\nOops, your template \'{0}\' has placeholders for parameters\nthat were not supplied in the command line:\n - {1}\n\nCan\'t proceed. Ending. Nothing has been changed yet.'.format(args['host-template'], '\n - '.join(sys.exc_info()[1].args)))
+		quit('\nOops, your template \'{0}\' has placeholders for parameters\nthat were not supplied in the command line:\n - {1}\n\nCan\'t proceed. Ending. Nothing has been changed yet.'.format(args['host-template'], '\n - '.join(sys.exc_info()[1].args)), 1)
 	
 	print vhost_cfg
 
