@@ -8,7 +8,7 @@
 
 <VirtualHost *:80>
 	ServerAdmin {admin}
-	ServerName {host}
+	ServerName {server}
 	
 	DocumentRoot {docroot}
 	<Directory />
@@ -17,14 +17,14 @@
 	</Directory>
 	<Directory {docroot}>
 		Options Indexes FollowSymLinks MultiViews
-		AllowOverride {override-docroot}
+		AllowOverride {override_docroot}
 		Order allow,deny
 		allow from all
 	</Directory>
 
 	ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
 	<Directory "/usr/lib/cgi-bin">
-		AllowOverride {override-cgi}
+		AllowOverride {override_cgi}
 		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
 		Order allow,deny
 		Allow from all
