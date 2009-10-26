@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
 import os, sys, re
-
 from optparse import OptionParser
-parser = OptionParser(usage='%prog SERVERNAME [options]')
 
+parser = OptionParser(usage='%prog SERVERNAME [options]')
 
 argstuple = ({'name': 'server', 'help': 'Apache virtual host name', 'short': 's', 'metavar': 'SERVER'}, {'name': 'docroot', 'help': 'Apache document root.', 'short': 'd', 'default': '{0}'}, {'name': 'admin', 'help': 'Admin\'s contact email', 'default': 'webmaster@localhost', 'short': 'a'}, {'name': 'override_docroot', 'help': 'AllowOverride for DocumentRoot', 'default': 'All'}, {'name': 'override_cgi', 'help': 'AllowOverride for cgi-bin', 'default': 'All'}, {'name': 'host_template', 'help': 'Template for host configuration (./config.template by default)', 'default': 'config.template'})
 
@@ -14,7 +13,11 @@ req_args = [i[0] for i in argstuple if len(i) < 3]"""
 
 serv = 'apache2'
 
-
+def safe_open(*args):
+	try:
+		return open(*args)
+	except IOError:
+		sys.exit('Error when tried to open file \'{0}\'. Error #{1[0]}: {1[1]}'.format(args[0], sys.exc_info()[1].args))
 
 def help():
 	return 
@@ -45,13 +48,11 @@ if __name__ == '__main__':
 	# check if there's no other same named host
 	hosts = [f for i in where for f in os.listdir(i + '/sites-enabled') if f[-1] != '~']
 	for i in hosts:
-		try:
-			with open(i) as config:
-				for l in config:
-					if re.split('\s+', l.strip('\t ')) == ['ServerName', args['host']]:
-						quit()
-		except IOError:
-			pass
+		with safe_open(i) as config:
+			for l in config:
+				if re.split('\s+', l.strip('\t ')) == ['ServerName', args['server']]:
+					quit('A host with ServerName \'{0}\' already exists.'.format(args['server']))
+		
 	
 	# need to check if docroot does not exists or is empty
 	if os.path.lexists(args['docroot']):
@@ -62,13 +63,11 @@ if __name__ == '__main__':
 	
 	
 	# create apache vhost file
-	try:
-		with open(args['host_template']) as conf_file:
+	with safe_open(args['host_template']) as conf_file:
+		try:
 			vhost_cfg = ''.join(conf_file).format(**args)
-	except IOError:
-		quit('Can\'t open file \'{0}\'. Error #{1[0]}: {1[1]}. {2}'.format(args['host_template'], sys.exc_info()[1].args, (sys.exc_info()[1][0] == 13 and 'Check file access permissions.' or '')), 1)
-	except KeyError:
-		quit('\nOops, your template \'{0}\' has placeholders for parameters\nthat were not supplied in the command line:\n - {1}\n\nCan\'t proceed. Ending. Nothing has been changed yet.'.format(args['host_template'], '\n - '.join(sys.exc_info()[1].args)), 1)
+		except KeyError:
+			quit('\nOops, your template \'{0}\' has placeholders for parameters\nthat were not supplied in the command line:\n - {1}\n\nCan\'t proceed. Ending. Nothing has been changed yet.'.format(args['host_template'], '\n - '.join(sys.exc_info()[1].args)), 1)
 	
 	print vhost_cfg
 
