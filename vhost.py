@@ -2,7 +2,6 @@
 
 import os, sys, re
 from optparse import OptionParser
-from pwd import getpwnam
 
 parser = OptionParser(usage='%prog SERVERNAME [options]')
 
@@ -25,6 +24,9 @@ def quit(msg, status = 0):
 	sys.exit(status)
 
 if __name__ == '__main__':
+	if os.getenv('USERNAME') != 'root':
+		quit('I can\'t do anything this way. Sudo me, please!')
+
 	for i in argstuple:
 		args = ['--'+i.pop('name'), 'short' in i.keys() and '-'+ i.pop('short', '') or '']
 		parser.add_option(*args, **i)
