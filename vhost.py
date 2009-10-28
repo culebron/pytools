@@ -5,7 +5,11 @@ from optparse import OptionParser
 
 parser = OptionParser(usage='%prog SERVERNAME [options]')
 
-argstuple = ({'name': 'docroot', 'help': 'Server\'s document root. Default: /var/www/SERVERNAME/public_html', 'short': 'd', 'default': '/var/www/{0}/public_html/'}, {'name': 'admin', 'help': 'Admin\'s contact email', 'default': 'webmaster@localhost', 'short': 'a'}, {'name': 'override_docroot', 'help': 'AllowOverride for DocumentRoot', 'default': 'All'}, {'name': 'override_cgi', 'help': 'AllowOverride for cgi-bin', 'default': 'All'}, {'name': 'host_template', 'help': 'Template for host configuration (./config.template by default)', 'default': 'config.template'})
+argstuple = ({'name': 'docroot', 'help': 'Server\'s document root. Default: /var/www/SERVERNAME/public_html', 'short': 'd', 'default': '/var/www/{0}/public_html/'},\
+{'name': 'admin', 'help': 'Admin\'s contact email', 'default': 'webmaster@localhost', 'short': 'a'},\
+{'name': 'override_docroot', 'help': 'AllowOverride for DocumentRoot', 'default': 'All'},\
+{'name': 'override_cgi', 'help': 'AllowOverride for cgi-bin', 'default': 'All'},\
+{'name': 'host_template', 'help': 'Template for host configuration (./config.template by default)', 'default': 'config.template'})
 
 serv = 'apache2'
 
@@ -30,8 +34,9 @@ if __name__ == '__main__':
 		quit(parser.format_help())
 	
 	args = options.__dict__
-	args['server'] = arguments[0] + '.' + os.uname()[1]
-
+	args['server'] = arguments[0]
+	args['servername'] = arguments[0] + '.' + os.uname()[1]
+	
 	with os.popen('whereis ' + serv) as response:
 		for x in re.split('\s+', ''.join(response)[len(serv)+1:].strip()):
 			if x[0:5] == '/etc/':
@@ -48,8 +53,8 @@ if __name__ == '__main__':
 		with safe_open(sites + '/' + i) as config:
 			for l in config:
 				l2 = l.strip('\t ')
-				if re.split('\s+', l2) == ['ServerName', args['server']] and not l2[0] == '#':
-					quit('A host with ServerName \'{0}\' already exists.'.format(args['server']))
+				if re.split('\s+', l2) == ['ServerName', args['servername']] and not l2[0] == '#':
+					quit('A host with ServerName \'{0}\' already exists.'.format(args['servername']))
 
 	# need to check if docroot does not exists or is empty
 	args['docroot'] = args['docroot'].format(args['server'])
@@ -93,7 +98,7 @@ if __name__ == '__main__':
 	# add to /etc/hosts
 	with safe_open('/etc/hosts', 'a') as hosts:
 		try:
-			hosts.write('\n127.0.0.1\t{0}'.format(args['server']))
+			hosts.write('\n127.0.0.1\t{0}'.format(args['servername']))
 		except IOError:
 			quit('Can\'t add host to \'/etc/hosts\'. Error #{0[0]}: {0[1]}.'.format(sys.exc_info()[1].args))
 		except OSError:

@@ -8,7 +8,7 @@
 
 <VirtualHost *:80>
 	ServerAdmin {admin}
-	ServerName {server}
+	ServerName {servername}
 	
 	DocumentRoot {docroot}
 	<Directory />
