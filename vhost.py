@@ -7,10 +7,6 @@ parser = OptionParser(usage='%prog SERVERNAME [options]')
 
 argstuple = ({'name': 'server', 'help': 'Apache virtual host name', 'short': 's', 'metavar': 'SERVER'}, {'name': 'docroot', 'help': 'Apache document root.', 'short': 'd', 'default': '/var/www/{0}/public_html/'}, {'name': 'admin', 'help': 'Admin\'s contact email', 'default': 'webmaster@localhost', 'short': 'a'}, {'name': 'override_docroot', 'help': 'AllowOverride for DocumentRoot', 'default': 'All'}, {'name': 'override_cgi', 'help': 'AllowOverride for cgi-bin', 'default': 'All'}, {'name': 'host_template', 'help': 'Template for host configuration (./config.template by default)', 'default': 'config.template'})
 
-
-"""args = dict((i[0], i[2]) for i in argstuple if len(i) == 3)
-req_args = [i[0] for i in argstuple if len(i) < 3]"""
-
 serv = 'apache2'
 
 def safe_open(*args):
