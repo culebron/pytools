@@ -1,11 +1,7 @@
-# parameters available:
-#	host
-#	docroot
-#	override
-#	admin
-#	override-docroot
-#	override-cgi
+# parameters available: servername, server, docroot, override, admin,
+# override-docroot, override-cgi
 
+# {server}
 <VirtualHost *:80>
 	ServerAdmin {admin}
 	ServerName {servername}
