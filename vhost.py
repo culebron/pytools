@@ -49,16 +49,17 @@ if __name__ == '__main__':
 		quit('No apache config found')
 	
 	# check if there's no other same named host
-	hosts = [f for f in os.listdir(where + '/sites-enabled') if f[-1] != '~']
+	sites = where + '/sites-enabled'
+	hosts = [f for f in os.listdir(sites) if f[-1] != '~']
 	for i in hosts:
-		with safe_open(i) as config:
+		with safe_open(sites + '/' + i) as config:
 			for l in config:
 				if re.split('\s+', l.strip('\t ')) == ['ServerName', args['server']]:
 					quit('A host with ServerName \'{0}\' already exists.'.format(args['server']))
 		
 	
 	# need to check if docroot does not exists or is empty
-	args['docroot'] = args['docroot'].format('/var/www/' + args['server'])
+	args['docroot'] = args['docroot'].format(args['server'])
 	if os.path.lexists(args['docroot']):
 		if not os.path.isdir(args['docroot']):
 			quit('docroot was a file or a link (\'{0}\')'.format(args['docroot']), 1)
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 	# restart apache
 	command = '/etc/init.d/{0} restart'.format(serv)
 	try:
-		os.system()
+		os.system(command)
 	except OSError:
 		quit('Couldn\'t restart {0} ({2}). Error #{1[0]}: {1[1]}'.format(serv, command, sys.exc_info()[1].args))
 
