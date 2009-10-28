@@ -74,12 +74,10 @@ if __name__ == '__main__':
 			quit('Can\'t create document root directory \'{0}\''.format(args['docroot']), 1)
 	
 		try:
-			su = os.getenv('SUDO_USER')
-			os.chown(args['docroot'], getpwnam(su)[2], getpwnam(su)[3])
+			os.chown(args['docroot'], int(os.getenv('SUDO_UID')), int(os.getenv('SUDO_GID')))
 		except OSError:
 			quit('Can\'t change document root ownership \'{0}\'. Error #{1[0]}: {1[1]}.'.format(args['docroot'], sys.exc_info()[1].args), 1)
 		
-		del su
 
 	# create apache vhost file
 	new_conf = where + '/sites-available/' + args['server']
