@@ -18,47 +18,47 @@ if __name__ == '__main__':
 	if os.getenv('USERNAME') != 'root':
 		quit('I can\'t do anything this way. Sudo me, please!')
 
-	if len(arguments) < 1:
+	if len(parse.arguments) < 1: # 1 argument (server name) is required
 		quit(parse.parser.format_help())
 	
-	args = parse.options.__dict__
-	args['server'] = parse.arguments[0]
-	args['servername'] = parse.arguments[0] + '.' + os.uname()[1]
+	args = parse.options.__dict__ # take dictionary of options to use as dict
+	args['server'] = parse.arguments[0] # these vars are needed to pass to format()
+	args['servername'] = parse.arguments[0] + '.' + os.uname()[1] # ...into config.template
 	
-	with os.popen('whereis ' + serv) as response:
-		for x in re.split('\s+', ''.join(response)[len(serv)+1:].strip()):
+	where = ''
+	with os.popen('whereis ' + serv) as response: # searching for apache in /etc/
+		for x in re.split('\s+', ''.join(response)[len(serv)+1:].strip()): # join lines if >1, split by spaces
 			if x[0:5] == '/etc/':
 				where = x
-				break
+				break # first /etc/ is what we looked for
 	
-	if len(where) == 0:
-		quit('No apache config found')
+	if where == '':
+		quit('Apache config directory not found in /etc/')
 	
 	# check if there's no other same named host
-	sites = where + '/sites-enabled'
-	hosts = [f for f in os.listdir(sites) if f[-1] != '~']
-	for i in hosts:
-		with safe.fopen(os.path.join(sites, i)) as config:
-			for l in config:
-				l2 = l.strip('\t ')
-				if re.split('\s+', l2) == ['ServerName', args['servername']] and not l2[0] == '#':
+	sites = os.path.join(where, 'sites-enabled')
+	for h in (f for f in safe.catch(os.listdir, sites, 'Can\'t list {0} directory') if f[-1] != '~'): # open all files except backup versions '*~'.
+		with safe.fopen(os.path.join(sites, h)) as config: # scan configs. need to close automatically afterwards
+			for l in config: # scan config
+				l2 = l.strip('\t ') # strip spaces and tabs
+				if re.split('\s+', l2) == ['ServerName', args['servername']]: # if it's not commented (commented produces ['#', ...] list)
 					quit('A host with ServerName \'{0}\' already exists.'.format(args['servername']))
 
 	# need to check if docroot does not exists or is empty
-	args['docroot'] = args['docroot'].format(args['server'])
+	args['docroot'] = args['docroot'].format(args['server']) # by default docroot is named as /var/www/host/public_html
 	if os.path.lexists(args['docroot']):
 		if not os.path.isdir(args['docroot']):
 			quit('docroot was a file or a link (\'{0}\')'.format(args['docroot']), 1)
-		if safe.catch(os.listdir, args['docroot'], 'Document root (\'{0}\') exists but is not accessible.') != []:
+		if safe.catch(os.listdir, args['docroot'], 'Document root (\'{0}\') exists but is not accessible.') != []: # try to list the directory. may fail if no access rights
 			quit('docroot parameter was a non-empty directory (\'{0}\')'.format(args['docroot']), 1)
 	else:
 		safe.catch(os.makedirs, args['docroot'], 'Can\'t create document root directory \'{0}\'')
 	
-		safe.catch(os.chown, (args['docroot'], int(os.getenv('SUDO_UID')), int(os.getenv('SUDO_GID'))), 'Can\'t change document root ownership \'{0}\'')
-		
+	safe.catch(os.chown, (args['docroot'], int(os.getenv('SUDO_UID')), int(os.getenv('SUDO_GID'))), 'Can\'t change document root ownership \'{0}\'')
+	
 
 	# create apache vhost file
-	new_conf = where + '/sites-available/' + args['server']
+	new_conf = os.path.join(where, 'sites-available', args['server'])
 	
 	with safe.fopen(args['host_template']) as conf_src:
 		try:
