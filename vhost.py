@@ -1,11 +1,8 @@
 #!/usr/bin/python
 
-import os, sys, re
-from optparse import OptionParser
-
-parser = OptionParser(usage='%prog SERVERNAME [options]')
-
-argstuple = ({'name': 'docroot', 'help': 'Server\'s document root. Default: /var/www/SERVERNAME/public_html', 'short': 'd', 'default': '/var/www/{0}/public_html/'},\
+import os, sys, re, parse
+parse.parser.usage = '%prog SERVERNAME [options]'
+parse.shovel({'name': 'docroot', 'help': 'Server\'s document root. Default: /var/www/SERVERNAME/public_html', 'short': 'd', 'default': '/var/www/{0}/public_html/'},\
 {'name': 'admin', 'help': 'Admin\'s contact email', 'default': 'webmaster@localhost', 'short': 'a'},\
 {'name': 'override_docroot', 'help': 'AllowOverride for DocumentRoot', 'default': 'All'},\
 {'name': 'override_cgi', 'help': 'AllowOverride for cgi-bin', 'default': 'All'},\
@@ -27,18 +24,12 @@ if __name__ == '__main__':
 	if os.getenv('USERNAME') != 'root':
 		quit('I can\'t do anything this way. Sudo me, please!')
 
-	for i in argstuple:
-		args = ['--'+i.pop('name'), 'short' in i.keys() and '-'+ i.pop('short', '') or '']
-		parser.add_option(*args, **i)
-	
-	(options, arguments)  = parser.parse_args()
-	
 	if len(arguments) < 1:
-		quit(parser.format_help())
+		quit(parse.parser.format_help())
 	
-	args = options.__dict__
-	args['server'] = arguments[0]
-	args['servername'] = arguments[0] + '.' + os.uname()[1]
+	args = parse.options.__dict__
+	args['server'] = parse.arguments[0]
+	args['servername'] = parse.arguments[0] + '.' + os.uname()[1]
 	
 	with os.popen('whereis ' + serv) as response:
 		for x in re.split('\s+', ''.join(response)[len(serv)+1:].strip()):
