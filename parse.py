@@ -20,5 +20,6 @@ def shovel(*args):
 
 	global options, arguments
 	(options, arguments)  = parser.parse_args()
+	options = options.__dict__
 
 
