@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os, sys, shutil, parse, safe, apachehost
+import os, shutil, parse, safe, apachehost
 from random import Random
 
 parse.parser.usage = '%prog HOST'
