@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import sys
 
 def fopen(*args):
 	try:
@@ -11,6 +12,9 @@ def quit(msg, status = 0):
 	sys.exit(status)
 
 def catch(method, args, message):
+	return catch_err(method, args, message, (IOError, OSError))
+
+def catch_err(method, args, message, exceptions):
 	if not isinstance(args, (list, tuple)):
 		args = [args]
 	
@@ -19,6 +23,8 @@ def catch(method, args, message):
 	
 	try:
 		return method(*args)
-	except IOError, OSError:
+	except exceptions:
 		quit(message.format(*args) + '\nError #{0[0]}: {0[1]}'.format(sys.exc_info()[1].args), 1)
-	
+
+def deco(method, exceptions):
+	pass
