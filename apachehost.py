@@ -3,9 +3,12 @@
 import sys, os, safe, re
 serv = 'apache2'
 
+@safe.require('l', str)
 def parse_line(l):
 	return re.split('\s+', l.strip('\t '))
 
+@safe.require('where', str)
+@safe.require('servername', str)
 def find(where, servername):
 	sites = os.path.join(where, 'sites-enabled')
 	for h in (f for f in safe.catch(os.listdir, sites, 'Can\'t list {0} directory') if f[-1] != '~'): # open all files except backup versions '*~'.
@@ -16,6 +19,8 @@ def find(where, servername):
 					yield sitefile
 					break
 
+@safe.require('host', str)
+@safe.require('params', str, list, tuple)
 def get(host, params):
 	if not isinstance(params, (list, tuple)):
 		params = [params]
