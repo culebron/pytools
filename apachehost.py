@@ -20,14 +20,9 @@ def get(host, params):
 	if not isinstance(params, (list, tuple)):
 		params = [params]
 	
-	result = {}
 	with safe.fopen(host) as cfg:
-		for i in cfg:
-			l = parse_line(i)
-			if l[0] in params:
-				result[l[0]] = l[1]
-	
-	return result
+		reader = (parse_line(i)[0:2] for i in cfg)
+		return dict([l for l in reader if l[0] in params])
 
 def config_dir():
 	with os.popen('whereis ' + serv) as output: # searching for apache in /etc/
