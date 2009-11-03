@@ -22,6 +22,9 @@ def find(where, servername):
 @safe.require('host', str)
 @safe.require('params', str, list, tuple)
 def get(host, params):
+	"""Gets dictionary of requested `param`eters from `host` configuration file.
+	Arguments:
+	"""
 	if not isinstance(params, (list, tuple)):
 		params = [params]
 	
@@ -37,6 +40,7 @@ def config_dir():
 	return None
 
 def create(opts, arguments):
+	"""Creates a name-based virtual host (config file), enables it and adds to /etc/hosts."""
 	if os.getenv('USERNAME') != 'root':
 		safe.quit('I can\'t do anything this way. Sudo me, please!')
 
