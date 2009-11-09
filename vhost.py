@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import os, sys, re, parse, safe, apachehost
-from contextlib import nested
 
 parse.parser.usage = '%prog SERVERNAME [options]'
 parse.shovel({'name': 'docroot', 'help': 'Server\'s document root. Default: /var/www/SERVERNAME/public_html', 'short': 'd', 'default': '/var/www/{0}/public_html/'},\

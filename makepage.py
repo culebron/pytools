@@ -7,7 +7,7 @@ tpl_suffix = '.nano.php'
 default_title = 'Page title'
 
 if __name__ == '__main__':
-	parse.parser.usage = '%prog HOST TEMPLATE [DEST]'
+	parse.parser.usage = '%prog TEMPLATE [DEST]'
 	parse.shovel({'name': 'force', 'help': 'Overwrite DEST if exists.', 'short': 'f', 'default': False}, {'name': 'title', 'help': 'Set page title', 'short': 't', 'default': default_title})
 	
 	if len(parse.arguments) < 2:
@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	
 	# compose destination path
 	dest = os.getcwd()
-	if len(parse.arguments) > 2:
+	if len(parse.arguments) > 1:
 		dest = os.path.join(dest, parse.arguments[2])
 	
 	if os.path.isdir(dest):

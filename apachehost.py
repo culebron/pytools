@@ -1,11 +1,17 @@
 #!/usr/bin/python
 
 import sys, os, safe, re
+from contextlib import nested
+
 serv = 'apache2'
+
+
 
 @safe.require('l', str)
 def parse_line(l):
 	return re.split('\s+', l.strip('\t '))
+
+
 
 @safe.require('where', str)
 @safe.require('servername', str)
@@ -18,6 +24,8 @@ def find(where, servername):
 				if parse_line(l)[0:2] == ['ServerName', servername]: # if it's not commented (commented produces ['#', ...] list)
 					yield sitefile
 					break
+
+
 
 @safe.require('host', str)
 @safe.require('params', str, list, tuple)
@@ -32,12 +40,16 @@ def get(host, params):
 		reader = (parse_line(i)[0:2] for i in cfg)
 		return dict([l for l in reader if l[0] in params])
 
+
+
 def config_dir():
 	with os.popen('whereis ' + serv) as output: # searching for apache in /etc/
 		for x in re.split('\s+', ''.join(output)[len(serv)+1:].strip()): # join lines if >1, split by spaces
 			if x[0:5] == '/etc/':
 				return x
 	return None
+
+
 
 def create(opts, arguments):
 	"""Creates a name-based virtual host (config file), enables it and adds to /etc/hosts."""
@@ -83,16 +95,23 @@ def create(opts, arguments):
 		safe.catch(os.rmdir, opts['docroot'], msg + 'Couldn\'t remove document root (\'{0}\')')
 		safe.quit(msg, 1)
 	
+	print 'Host config saved in {0}. '.format(new_conf),
+	
 	# link it
 	couldnt_add_host = 'Couldn\'t add host to enabled hosts (make symlink in \'{0}\')'
 	safe.catch(os.chdir, where + '/sites-enabled', couldnt_add_host)
 	safe.catch(os.symlink, [new_conf, opts['server']], couldnt_add_host)
 	
+	print 'Enabled. ',
+	
 	# add to /etc/hosts
 	with safe.fopen('/etc/hosts', 'a') as hosts:
 		safe.catch(hosts.write, '\n127.0.0.1\t{0}'.format(opts['servername']), 'Can\'t add host to \'/etc/hosts\'.')
 	
+	print 'Added to /etc/hosts. ',
+	
 	# restart apache
-	command = '/etc/init.d/{0} restart'.format(serv)
-	safe.catch(os.system, command, 'Couldn\'t restart ' + serv + '({0})')
+	safe.catch(os.system, '/etc/init.d/{0} restart'.format(serv), 'Couldn\'t restart ' + serv + '({0})')
+
+	print 'Apache restarted successfully. Host {0} is now available at http://{1}.'.format(options['server'], options['servername'])
 
