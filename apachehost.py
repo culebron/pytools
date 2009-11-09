@@ -113,5 +113,5 @@ def create(opts, arguments):
 	# restart apache
 	safe.catch(os.system, '/etc/init.d/{0} restart'.format(serv), 'Couldn\'t restart ' + serv + '({0})')
 
-	print 'Apache restarted successfully. Host {0} is now available at http://{1}.'.format(options['server'], options['servername'])
+	print 'Apache restarted successfully. Host {0} is now available at http://{1}.'.format(opts['server'], opts['servername'])
 
