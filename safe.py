@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+from types import FunctionType
 
 def require(arg_name, *allowed_types):
 	def make_wrapper(f):
@@ -45,13 +46,21 @@ def quit(msg, status = 0):
 	print msg
 	sys.exit(status)
 
-def catch(method, args, message):
-	return catch_err(method, args, message, (IOError, OSError))
-
-def catch_err(method, args, message, exceptions):
+@require('method', FunctionType)
+@require('args', (tuple, list))
+@require('message', str)
+def catch(method, args, message, exceptions = (OSError, IOError)):
 	if not isinstance(args, (list, tuple)):
 		args = [args]
 	
+	return newcatch(method, args, message, exceptions)
+
+@require('method', FunctionType)
+@require('message', str)
+def newcatch(message, exceptions = None, method, *args, **kwargs):
+	if exceptions == None:
+		exceptions = (IOError, OSError)
+
 	if not isinstance(message, str):
 		raise TypeError('message parameter must be a string')
 	
@@ -60,7 +69,10 @@ def catch_err(method, args, message, exceptions):
 	except exceptions:
 		quit(message.format(*args) + '\nError #{0[0]}: {0[1]}'.format(sys.exc_info()[1].args), 1)
 
-def deco(method, exceptions):
-	pass
+def wrap(method, message, exceptions = (OSError, IOError)):
+	def fn(*args, **kwargs):
+		newcatch(message, exceptions, method, *args, **kwargs)
+	
+	return fn
 
-
+open = wrap(open, 'Can\'t open \'{0}\'')
