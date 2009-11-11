@@ -38,7 +38,7 @@ def require(arg_name, *allowed_types):
 def fopen(*args):
 	try:
 		return open(*args)
-	except IOError:
+	except (OSError, IOError):
 		sys.exit('Error when tried to open file \'{0}\'. Error #{1[0]}: {1[1]}'.format(args[0], sys.exc_info()[1].args))
 
 @require('msg', str)
