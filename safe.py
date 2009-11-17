@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys
-from types import FunctionType
+from types import FunctionType, BuiltinFunctionType
 
 def require(arg_name, *allowed_types):
 	def make_wrapper(f):
@@ -46,24 +46,17 @@ def quit(msg, status = 0):
 	print msg
 	sys.exit(status)
 
-@require('method', FunctionType)
-@require('args', (tuple, list))
+@require('method', (FunctionType, BuiltinFunctionType))
 @require('message', str)
 def catch(method, args, message, exceptions = (OSError, IOError)):
 	if not isinstance(args, (list, tuple)):
 		args = [args]
 	
-	return newcatch(method, args, message, exceptions)
+	return newcatch(message, exceptions, method, *args)
 
-@require('method', FunctionType)
+@require('method', (FunctionType, BuiltinFunctionType))
 @require('message', str)
-def newcatch(message, exceptions = None, method, *args, **kwargs):
-	if exceptions == None:
-		exceptions = (IOError, OSError)
-
-	if not isinstance(message, str):
-		raise TypeError('message parameter must be a string')
-	
+def newcatch(message, exceptions, method, *args, **kwargs):
 	try:
 		return method(*args)
 	except exceptions:
