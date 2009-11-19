@@ -24,41 +24,41 @@ if 'start_date' in globals():
 	command += ' -mtime {0}'.format((date(*map(int, start_date)) - date.today()).days)
 
 #if '--debug' not in paths:
-#	command += ' > grefs'
+#	command += ' > grafts'
 
-gref_name = 'gref-disk-{0}.txt'
+graft_name = 'graft-disk-{0}.txt'
 disk_size = 0
 disk_num = 1
-gref = open(gref_name.format(disk_num), 'w')
+graft = open(graft_name.format(disk_num), 'w')
 for p in paths:
 	if not os.path.isdir(p):
 		continue
 	#print 'command: ' + command.format(p)
 	for l in os.popen(command.format(p)):
 		#print l,
-		dirpath = os.path.join(p, l.replace('\n', ''))
+		dirpath = l.replace('\n', '')
 		fsize = os.path.getsize(dirpath)
 		#print disk_size, fsize, disk_capacity
 		if disk_size + fsize > disk_capacity:
 			print 'end disk' + str(disk_num)
-			gref.close()
+			graft.close()
 			disk_num += 1
-			gref = open(gref_name.format(disk_num), 'w')
+			graft = open(graft_name.format(disk_num), 'w')
 			disk_size = 0
 		
 		disk_size += fsize
-		gref.write('{0}={0}\n'.format(dirpath))
+		graft.write('{1}={0}\n'.format(dirpath, os.path.relpath(dirpath, os.getenv('HOME'))))
 		
 		#if os.path.isdir(path):
 		#	continue
 		
 		#f.write(path + '=' + path + '\n')
-gref.close()
+graft.close()
 
 for i in range(1, disk_num + 1):
-	isocmd = ('mkisofs -o disk-{0}.iso -rJ --path-list '+gref_name).format(i)
+	isocmd = ('mkisofs -o disk-{0}.iso -rJ -graft-points --path-list '+graft_name).format(i)
 	
-	#os.system(isocmd)
+	os.system(isocmd)
 	print isocmd
-	#os.unlink(gref_name.format(i))
+	#os.unlink(graft_name.format(i))
 
