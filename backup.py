@@ -51,6 +51,7 @@ if __name__ == '__main__':
 			dates[i] = match.groups(0)
 	
 	dirs = dirs[1]
+	
 	command = 'find {0} -type f -readable -daystart '
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
@@ -63,25 +64,31 @@ if __name__ == '__main__':
 
 	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD']
 	
-	file_size = disk_size = 0
 	disk_num = 1
 	x = scanner()
-	y = ''
 
 	try:		
-		while y or '' == y:
+		while True:
 			with open(graft_name.format(disk_num), 'w') as graft:
+			disk_size = 0
+			disk_num += 1
 				while y or '' == y:
-					graft.write('{1}={0}\n'.format(dirpath, os.path.relpath(dirpath, os.getenv('HOME'))))
-					y = x.next()
+					graft.write('{1}={0}\n'.format(y['name'],
+						os.path.relpath(y['name'], os.getenv('HOME'))))
+					disk_size += y['size']
 					
-					if y['size'] 
+					while True:
+						y = x.next()
+						if y['size'] < disk_capacity:
+							break
+						print 'File {0} was omitted since it\'s greater than size of {1}'.format(y['name'], parse.options.
+					
+					if disk_size + y['size'] > disk_capacity:
+						break
 	
 	except StopIteration:
-		pass				
-				# записать строку из y
-				# проверить размер файла в i
-
+		pass
+	
 if False:
 	paths = sys.argv[1:]
 	todel = []
