@@ -56,120 +56,44 @@ if __name__ == '__main__':
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
 	
-	def scanner():
+	def scanner(): # to iterate over several finds like over one
 		for p in dirs:
 			with os.popen(command.format(p)) as r:
 				for l in r:
 					yield {'name': l[:-1], 'size': os.path.getsize(l[:-1])}
 
-	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD']
-	
-	disk_num = 1
-	x = scanner()
+	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD'] # ugly
+	disk_num = 0
+	x = scanner() # to use it both in and out of the DISK loop. Otherwise I'd just did 'for i in scanner()'.
 
-	try:		
-		while True:
-			with open(graft_name.format(disk_num), 'w') as graft:
-			disk_size = 0
+	try: # a way to break the DISK LOOP (x.next() will raise StopIteration)
+		y = x.next()
+		while True: # infinite DISK LOOP
 			disk_num += 1
-				while y or '' == y:
-					graft.write('{1}={0}\n'.format(y['name'],
-						os.path.relpath(y['name'], os.getenv('HOME'))))
-					disk_size += y['size']
+			with open(graft_name.format(disk_num), 'w') as graft:
+				disk_size = 0
+				while y or '' == y: # MAIN LOOP
+					if y is not '': # loop to skip the initial pass (y='')
+						graft.write('{1}={0}\n'.format(y['name'],
+						os.path.relpath(y['name'], os.getenv('HOME')))) # writing the path to file and path relative to home dir
+						disk_size += y['size']
 					
-					while True:
-						y = x.next()
+					while True: # loop to skip files larger than the media
+						y = x.next() # getting the next element
 						if y['size'] < disk_capacity:
 							break
 						print 'File {0} was omitted since it\'s greater than size of {1}'.format(y['name'], parse.options.
 					
 					if disk_size + y['size'] > disk_capacity:
-						break
+						break # breaks the MAIN LOOP and goes to the next disk.
 	
 	except StopIteration:
-		pass
-	
-if False:
-	paths = sys.argv[1:]
-	todel = []
-	disk_capacity = 4.7e+9
-	for p in paths:
-		match = re.search(r'^--from=(\d{4})-(\d\d)-(\d\d)$', p)
-		if match is None:
-			continue
-	
-		start_date = match.groups(0)
-		todel.append(p)
-
-	for d in todel:
-		paths.remove(d)
-
-	command = 'find {0} -type f -readable'
-	if 'start_date' in globals():
-		command += ' -mtime {0}'.format((date(*map(int, start_date)) - date.today()).days)
-
-	graft_name = 'graft-disk-{0}.txt'
-	file_size = 0
-	disk_size = 0
-	
-	while 
-	
-	for l in scanner():
-		dirpath = l.replace('\n', '')
-		fsize = os.path.getsize(dirpath)
-		if disk_size + fsize > disk_capacity:
-			print 'end disk' + str(disk_num)
-			graft.close()
-			disk_num += 1
-			graft = open(graft_name.format(disk_num), 'w')
-			disk_size = 0
-	
-		disk_size += fsize
-		graft.write('{1}={0}\n'.format(dirpath, os.path.relpath(dirpath, os.getenv('HOME'))))
-	
-		#if os.path.isdir(path):
-		#	continue
-	
-		#f.write(path + '=' + path + '\n')
-	graft.close()
-
-
-	#if '--debug' not in paths:
-	#	command += ' > grafts'
-
-	graft_name = 'graft-disk-{0}.txt'
-	disk_size = 0
-	disk_num = 1
-	graft = open(graft_name.format(disk_num), 'w')
-	for p in paths:
-		if not os.path.isdir(p):
-			continue
-		#print 'command: ' + command.format(p)
-		for l in os.popen(command.format(p)):
-			#print l,
-			dirpath = l.replace('\n', '')
-			fsize = os.path.getsize(dirpath)
-			#print disk_size, fsize, disk_capacity
-			if disk_size + fsize > disk_capacity:
-				print 'end disk' + str(disk_num)
-				graft.close()
-				disk_num += 1
-				graft = open(graft_name.format(disk_num), 'w')
-				disk_size = 0
-		
-			disk_size += fsize
-			graft.write('{1}={0}\n'.format(dirpath, os.path.relpath(dirpath, os.getenv('HOME'))))
-		
-			#if os.path.isdir(path):
-			#	continue
-		
-			#f.write(path + '=' + path + '\n')
-	graft.close()
+		pass # list is over, that's it
 
 	for i in range(1, disk_num + 1):
-		isocmd = ('mkisofs -o disk-{0}.iso -rJ -graft-points --path-list '+graft_name).format(i)
+		isocmd = ('mkisofs -o disk-{0}.iso -rJ -graft-points --path-list ' + graft_name).format(i)
 	
 		os.system(isocmd)
+		print 'Executing command:'
 		print isocmd
-		#os.unlink(graft_name.format(i))
 
