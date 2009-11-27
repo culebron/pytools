@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
 	iso_path = 'disk-{0}.iso'
 	for i in range(1, disk_num + 1):
-		isocmd = ('mkisofs -o {1} -rJ -udf -graft-points --path-list {0}').format(graft_name.format(i), os.path.join(parse.options['output'], iso_path.format(i)))
+		isocmd = ('mkisofs -o {1} -rJU -iso-level 3 -graft-points --path-list {0}').format(graft_name.format(i), os.path.join(parse.options['output'], iso_path.format(i)))
 	
 		print 'Executing command:'
 		print isocmd
