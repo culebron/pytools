@@ -2,7 +2,7 @@
 
 """Backup script. Usage: """
 
-import os, sys, re, parse
+import os, sys, re, parse, math
 from datetime import date
 
 parse.parser.usage = '%prog [paths] [options]'
@@ -22,16 +22,25 @@ parse_params = ({'name': 'exclude',
 	'short': 'f'},
 {	'name': 'to',
 	'help': 'Modified in this day or earlier.',
-	'short': 't'})
+	'short': 't'},
+{	'name': 'output',
+	'help': 'Where to put ISO files',
+	'short': 'o',
+	'default': '/tmp'})
 
 volumes = {
 	'DVD': 4.7e+9,
 	'DVD-DL': 4.7e+9 * 2,
 	'CD': 7.0e+8,
-	'BR': 2.2e+10
+	'BR': 2.2e+10,
+	'test': 1e+8
 }
 
-graft_name = 'graft-disk-{0}.txt'
+disk_overhead = 0.95
+graft_name = '/tmp/graft-disk-{0}.txt'
+
+def padn(n, b = 2048):
+	return n - (n % b) + b if n % b > 0 else n
 
 if __name__ == '__main__':
 	parse.shovel(parse_params)
@@ -65,14 +74,15 @@ if __name__ == '__main__':
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
 	
-	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD'] # ugly
+	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] in volumes else volumes['DVD'] # ugly
+	#disk_capacity = int(disk_capacity * disk_overhead)
 	disk_num = 0
 	
 	def scanner(): # to iterate over several finds like over one
 		for p in dirs:
 			with os.popen(command.format(p)) as r:
 				for l in r:
-					yield {'name': l[:-1], 'size': os.path.getsize(l[:-1])}
+					yield {'name': l[:-1], 'size': padn(os.path.getsize(l[:-1]))}
 	
 	x = scanner() # to use it both in and out of the DISK loop. Otherwise I'd just did 'for i in scanner()'.
 
@@ -92,7 +102,7 @@ if __name__ == '__main__':
 						y = x.next() # getting the next element
 						if y['size'] < disk_capacity:
 							break
-						print 'File {0} was omitted since it\'s greater than size of {1}'.format(y['name'], parse.options.
+						print 'File {0} was omitted since it\'s greater than size of {1}'.format(y['name'], parse.options['volume'])
 					
 					if disk_size + y['size'] > disk_capacity:
 						break # breaks the MAIN LOOP and goes to the next disk.
@@ -100,10 +110,11 @@ if __name__ == '__main__':
 	except StopIteration:
 		pass # list is over, that's it
 
+	iso_path = 'disk-{0}.iso'
 	for i in range(1, disk_num + 1):
-		isocmd = ('mkisofs -o disk-{0}.iso -rJ -graft-points --path-list ' + graft_name).format(i)
+		isocmd = ('mkisofs -o {1} -rJ -udf -graft-points --path-list {0}').format(graft_name.format(i), os.path.join(parse.options['output'], iso_path.format(i)))
 	
-		os.system(isocmd)
 		print 'Executing command:'
 		print isocmd
+		os.system(isocmd)
 
