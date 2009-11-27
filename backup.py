@@ -49,21 +49,31 @@ if __name__ == '__main__':
 		match = re.search(r'^(\d{4})-(\d\d)-(\d\d)$', str(parse.options.get(i, '')))
 		if match is not None:
 			dates[i] = match.groups(0)
+
+	def removeAncestors(dirs):
+		for i in dirs:
+			for j in dirs:
+				if i == j:
+					continue
+				if os.path.commonprefix([i, j]) == j:
+					dirs.remove(i)
 	
-	dirs = dirs[1]
+	dirs = list(set(dirs[1]))
+	removeAncestors(dirs)
 	
 	command = 'find {0} -type f -readable -daystart '
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
+	
+	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD'] # ugly
+	disk_num = 0
 	
 	def scanner(): # to iterate over several finds like over one
 		for p in dirs:
 			with os.popen(command.format(p)) as r:
 				for l in r:
 					yield {'name': l[:-1], 'size': os.path.getsize(l[:-1])}
-
-	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] not in volumes else volumes['DVD'] # ugly
-	disk_num = 0
+	
 	x = scanner() # to use it both in and out of the DISK loop. Otherwise I'd just did 'for i in scanner()'.
 
 	try: # a way to break the DISK LOOP (x.next() will raise StopIteration)
