@@ -82,16 +82,14 @@ typed = 0
 
 print '{0} bytes to copy'.format(totalsize)
 for f in cpfiles:
-	print 'Copying: ' + os.path.split(f['path'])[-1],
+	fname = os.path.split(f['path'])[-1]
+	print 'Copying: ' + fname,
 	
-	if re.search(r'(\d\d\D){2}\d{4}(\D\d\d){3}\.mp3$', fpath, re.I): # if it has date in string, in reversed format, rename it
+	if re.search(r'(\d\d\D){2}\d{4}(\D\d\d){3}\.mp3$', fname, re.I): # if it has date in string, in reversed format, rename it
 		cre = re.compile('(\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\\.mp3$', re.I) # rename it to a new format
-		fnewpath = re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\6.mp3', fpath) # new path (year in the beginning)
-		#shutil.move(fpath, fnewpath) # renaming
-		#fpath = fnewpath # replacing file path
-		#del cre, fnewpath
+		fnewname = re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\6.mp3', fname) # new path (year in the beginning)
 	
-	shutil.copy2(f['path'], dirto) # copy the files to target directory
+	shutil.copy2(f['path'], os.path.join(dirto, fnewname)) # copy the files to target directory
 	copysize += f['size']
 	print  'Done. {0:.0%} ready. '.format(copysize / totalsize)
 
