@@ -42,13 +42,6 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 	fhash, fpath = mobj.groups(0)
 	fdate = defdate # file's date is 1-1-1 by default
 	
-	if re.search(r'(\d\d\D){2}\d{4}(\D\d\d){3}\.mp3$', fpath, re.I): # if it has date in string, in reversed format, rename it
-		cre = re.compile('(\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\\.mp3$', re.I) # rename it to a new format
-		fnewpath = re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\6.mp3', fpath) # new path (year in the beginning)
-		#shutil.move(fpath, fnewpath) # renaming
-		#fpath = fnewpath # replacing file path
-		#del cre, fnewpath
-	
 	mobj = re.search(r'(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\D(\d\d)\D(\d\d)\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
 	if mobj:
 		fdate = mobj.groups(0); # change file's date
@@ -90,6 +83,14 @@ typed = 0
 print '{0} bytes to copy'.format(totalsize)
 for f in cpfiles:
 	print 'Copying: ' + os.path.split(f['path'])[-1],
+	
+	if re.search(r'(\d\d\D){2}\d{4}(\D\d\d){3}\.mp3$', fpath, re.I): # if it has date in string, in reversed format, rename it
+		cre = re.compile('(\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\\.mp3$', re.I) # rename it to a new format
+		fnewpath = re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\6.mp3', fpath) # new path (year in the beginning)
+		#shutil.move(fpath, fnewpath) # renaming
+		#fpath = fnewpath # replacing file path
+		#del cre, fnewpath
+	
 	shutil.copy2(f['path'], dirto) # copy the files to target directory
 	copysize += f['size']
 	print  'Done. {0:.0%} ready. '.format(copysize / totalsize)
