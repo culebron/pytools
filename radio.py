@@ -13,7 +13,7 @@ def freespace(p):
 defdate = (1,)*6
 stdate = defdate # default start date is current eon's first day
 dirs = [] # paths supplied in arguments
-for p in sys.argv:
+for p in sys.argv[1:]:
 	if os.path.isdir(p):
 		dirs.append(p) # if an argument is directory, add it to scanned dirs
 		continue
@@ -81,13 +81,15 @@ copysize = 0.0
 typed = 0
 
 print '{0} bytes to copy'.format(totalsize)
+cre = re.compile('((\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)(\D(\d\d)|)\\.mp3)$', re.I) # rename it to a new format
 for f in cpfiles:
-	fname = os.path.split(f['path'])[-1]
+	fnewname = fname = os.path.split(f['path'])[-1]
 	print 'Copying: ' + fname,
 	
-	if re.search(r'(\d\d\D){2}\d{4}(\D\d\d){3}\.mp3$', fname, re.I): # if it has date in string, in reversed format, rename it
-		cre = re.compile('(\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\\.mp3$', re.I) # rename it to a new format
-		fnewname = re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\6.mp3', fname) # new path (year in the beginning)
+	match = re.search(cre, fname)
+	if match: # if it has date in string, in reversed format, rename it
+		grps = list(match.groups('00'))
+		fnewname = '{3}-{2}-{1} {4}-{5}-{7}.mp3'.format(*grps) # re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\7.mp3', fname) # new path (year in the beginning)
 	
 	shutil.copy2(f['path'], os.path.join(dirto, fnewname)) # copy the files to target directory
 	copysize += f['size']
