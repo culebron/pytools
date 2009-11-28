@@ -42,24 +42,27 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 	fhash, fpath = mobj.groups(0)
 	fdate = defdate # file's date is 1-1-1 by default
 	
-	mobj = re.search(r'(\d{4})\D(\d\d)\D(\d\d)\D(\d\d)\D(\d\d)\D(\d\d)\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
+	mobj = re.search(r'(\d{2,4})\D(\d\d)\D(\d{2,4})\D(\d\d)\D(\d\d)\D(\d\d)\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
 	if mobj:
-		fdate = mobj.groups(0); # change file's date
+		grps = map(int, list(mobj.groups(0)))
+		if grps[0] < 32:
+			grps[0], grps[2] = grps[2], grps[0]
+		fdate = grps # change file's date
+	
 	del mobj
 	
-	fdate = map(int, fdate) # convert it into datetime
 	if fdate >= stdate: # if date is more than start date, then copy it (if file has no date, it's default, and will also be copied if start date is also default)
 		files.append({'path': fpath, 'size': os.path.getsize(fpath), 'date': fdate, 'hash': fhash}) # add to array
 	
 
 files.sort(key = lambda d: d.get('date'), reverse = True) # sort it by date, key is date 
 
-targetfiles = {}
+"""targetfiles = {}
 for f in os.popen('find '+ dirto + ' -iname \'*.mp3\' -type f -exec sha1sum {} \\;'):
 	mobj = re.match(r'([\da-f]{40})  (.*)\n', f)
 	if not mobj:
 		continue
-	targetfiles[mobj.groups(0)[0]] = mobj.groups(0)[1]
+	targetfiles[mobj.groups(0)[0]] = mobj.groups(0)[1]"""
 
 """for f in files:
 	if f['hash'] in targetfiles.keys():
@@ -88,8 +91,7 @@ for f in cpfiles:
 	
 	match = re.search(cre, fname)
 	if match: # if it has date in string, in reversed format, rename it
-		grps = list(match.groups('00'))
-		fnewname = '{3}-{2}-{1} {4}-{5}-{7}.mp3'.format(*grps) # re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\7.mp3', fname) # new path (year in the beginning)
+		fnewname = '{3}-{2}-{1} {4}-{5}-{7}.mp3'.format(*match.groups('00')) # re.sub(cre, '\\3-\\2-\\1 \\4-\\5-\\7.mp3', fname) # new path (year in the beginning)
 	
 	shutil.copy2(f['path'], os.path.join(dirto, fnewname)) # copy the files to target directory
 	copysize += f['size']
