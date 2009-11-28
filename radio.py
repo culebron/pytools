@@ -51,7 +51,7 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 	
 	del mobj
 	
-	if fdate >= stdate: # if date is more than start date, then copy it (if file has no date, it's default, and will also be copied if start date is also default)
+	if fdate >= stdate and os.path.getsize(fpath) > 0: # if date is more than start date, then copy it (if file has no date, it's default, and will also be copied if start date is also default)
 		files.append({'path': fpath, 'size': os.path.getsize(fpath), 'date': fdate, 'hash': fhash}) # add to array
 	
 
