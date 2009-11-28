@@ -44,29 +44,17 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 	
 	mobj = re.search(r'(\d{2,4})\D(\d\d)\D(\d{2,4})\D(\d\d)\D(\d\d)\D(\d\d)\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
 	if mobj:
-		grps = map(int, list(mobj.groups(0)))
-		if grps[0] < 32:
-			grps[0], grps[2] = grps[2], grps[0]
-		fdate = grps # change file's date
+		fdate = map(int, list(mobj.groups(0)))
+		if fdate[0] < 32:
+			fdate[0], fdate[2] = fdate[2], fdate[0]
 	
 	del mobj
 	
 	if fdate >= stdate and os.path.getsize(fpath) > 0: # if date is more than start date, then copy it (if file has no date, it's default, and will also be copied if start date is also default)
 		files.append({'path': fpath, 'size': os.path.getsize(fpath), 'date': fdate, 'hash': fhash}) # add to array
-	
+
 
 files.sort(key = lambda d: d.get('date'), reverse = True) # sort it by date, key is date 
-
-"""targetfiles = {}
-for f in os.popen('find '+ dirto + ' -iname \'*.mp3\' -type f -exec sha1sum {} \\;'):
-	mobj = re.match(r'([\da-f]{40})  (.*)\n', f)
-	if not mobj:
-		continue
-	targetfiles[mobj.groups(0)[0]] = mobj.groups(0)[1]"""
-
-"""for f in files:
-	if f['hash'] in targetfiles.keys():
-		targetfiles[f['hash']]"""
 
 cpfiles = []
 warn = False
@@ -87,7 +75,7 @@ print '{0} bytes to copy'.format(totalsize)
 cre = re.compile('((\d\d)\D(\d\d)\D(\d{4})\D(\d\d)\D(\d\d)(\D(\d\d)|)\\.mp3)$', re.I) # rename it to a new format
 for f in cpfiles:
 	fnewname = fname = os.path.split(f['path'])[-1]
-	print 'Copying: ' + fname,
+	print 'Copying: {0} to {1}'.format(fname, fnewname),
 	
 	match = re.search(cre, fname)
 	if match: # if it has date in string, in reversed format, rename it
