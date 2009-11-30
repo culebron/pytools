@@ -58,13 +58,13 @@ def catch(method, args, message, exceptions = (OSError, IOError)):
 @require('message', str)
 def newcatch(message, exceptions, method, *args, **kwargs):
 	try:
-		return method(*args)
+		return method(*args, **kwargs)
 	except exceptions:
-		quit(message.format(*args) + '\nError #{0[0]}: {0[1]}'.format(sys.exc_info()[1].args), 1)
+		quit(message.format(*args, **kwargs) + '\nError #{0[0]}: {0[1]}'.format(sys.exc_info()[1].args), 1)
 
 def wrap(method, message, exceptions = (OSError, IOError)):
 	def fn(*args, **kwargs):
-		newcatch(message, exceptions, method, *args, **kwargs)
+		return newcatch(message, exceptions, method, *args, **kwargs)
 	
 	return fn
 
