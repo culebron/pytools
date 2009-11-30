@@ -2,7 +2,13 @@
 
 import random, time, math, sys
 
-bases = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ords = (range(48, 58) # 0-9
+	+ range(65, 91) # a-z
+	+ range(97, 123) # A-Z
+	)
+
+bases = ''.join([chr(i) for i in ords])
+
 def baseN(num,b):
 	return ((num == 0) and  '0' ) or ( baseN(num // b, b).lstrip('0') + bases[num % b])
 
