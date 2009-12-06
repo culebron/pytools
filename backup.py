@@ -26,7 +26,12 @@ parse_params = ({'name': 'exclude',
 {	'name': 'output',
 	'help': 'Where to put ISO files',
 	'short': 'o',
-	'default': '/tmp'})
+	'default': '/tmp'},
+{	'name': 'debug',
+	'short': 'd',
+	'help': 'Debugging mode (don\'t create ISO images)',
+	'action': 'store_true',
+	'default': True})
 
 volumes = {
 	'DVD': 4.7e+9,
@@ -50,8 +55,7 @@ if __name__ == '__main__':
 		dirs[os.path.isdir(i)].append(i)
 	
 	if len(dirs[0]) > 0:
-		print 'The following paths aren\'t directories and were ignored:'
-		print '\n'.join(non_dirs)
+		print 'The following paths aren\'t directories and were ignored:\n' + '\n'.join(non_dirs)
 	
 	dates = {}
 	for i in ['from', 'to']:
@@ -71,6 +75,16 @@ if __name__ == '__main__':
 	removeAncestors(dirs)
 	
 	command = 'find {0} -type f -readable -daystart '
+
+	def joiner(join, fmt, array):
+		if not parse.options[array]:
+			return ''
+		
+		return join.join([fmt.format(i) for i in parse.options[array]])
+	
+	command += joiner(' ', ' -not -path "{0}" ', 'exclude') + ('{0}' if len(parse.options['include']) < 2
+		else '\( {0} \)').format(joiner(' -or ', '-path "{0}"', 'include'))
+
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
 	
@@ -81,6 +95,8 @@ if __name__ == '__main__':
 	def scanner(): # to iterate over several finds like over one
 		for p in dirs:
 			with os.popen(command.format(p)) as r:
+				if parse.options['debug']:
+					print command.format(p)
 				for l in r:
 					yield {'name': l[:-1], 'size': padn(os.path.getsize(l[:-1]))}
 	
@@ -116,5 +132,5 @@ if __name__ == '__main__':
 	
 		print 'Executing command:'
 		print isocmd
-		os.system(isocmd)
+		#os.system(isocmd)
 
