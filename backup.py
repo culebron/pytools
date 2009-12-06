@@ -85,7 +85,9 @@ if __name__ == '__main__':
 		
 		return join.join([fmt.format(i) for i in parse.options[array]])
 	
-	command += joiner(' ', ' -not -path "{0}" ', 'exclude') + ('{0}' if len(parse.options['include']) < 2
+	command += joiner(' ', ' -not -path "{0}" ', 'exclude')
+	if parse.options['include']:
+		command += ('{0}' if len(parse.options['include']) < 2
 		else '\( {0} \)').format(joiner(' -or ', '-path "{0}"', 'include'))
 
 	for i in dates:
@@ -131,7 +133,7 @@ if __name__ == '__main__':
 
 	iso_path = 'disk-{0}.iso'
 	for i in range(1, disk_num + 1):
-		isocmd = ('mkisofs -o {1} -rJU -iso-level 3 -graft-points --path-list {0}').format(comlpetePath(graft_name.format(i)), comlpetePath(iso_path.format(i)))
+		isocmd = ('mkisofs -o {1} -rU -udf -iso-level 3 -graft-points --path-list {0}').format(comlpetePath(graft_name.format(i)), comlpetePath(iso_path.format(i)))
 	
 		print 'Executing command:'
 		print isocmd
