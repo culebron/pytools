@@ -31,7 +31,7 @@ parse_params = ({'name': 'exclude',
 	'short': 'd',
 	'help': 'Debugging mode (don\'t create ISO images)',
 	'action': 'store_true',
-	'default': True})
+	'default': False})
 
 volumes = {
 	'DVD': 4.7e+9,
@@ -41,13 +41,16 @@ volumes = {
 	'test': 1e+8
 }
 
-disk_overhead = 0.95
-graft_name = '/tmp/graft-disk-{0}.txt'
+disk_overhead = 0.05
+graft_name = 'graft-disk-{0}.txt'
 
 def padn(n, b = 2048):
 	return n - (n % b) + b if n % b > 0 else n
 
 if __name__ == '__main__':
+	def comlpetePath(path):
+		return os.path.join(parse.options['output'], path)
+	
 	parse.shovel(parse_params)
 	
 	dirs = [[], []]
@@ -88,8 +91,8 @@ if __name__ == '__main__':
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
 	
-	disk_capacity = volumes[parse.options['volume']] if parse.options['volume'] in volumes else volumes['DVD'] # ugly
-	#disk_capacity = int(disk_capacity * disk_overhead)
+	disk_capacity = volumes.get(parse.options['volume'], volumes.values()[0])
+	disk_capacity = int(disk_capacity * (1 - disk_overhead))
 	disk_num = 0
 	
 	def scanner(): # to iterate over several finds like over one
@@ -106,7 +109,7 @@ if __name__ == '__main__':
 		y = x.next()
 		while True: # infinite DISK LOOP
 			disk_num += 1
-			with open(graft_name.format(disk_num), 'w') as graft:
+			with open(comlpetePath(graft_name.format(disk_num)), 'w') as graft:
 				disk_size = 0
 				while y or '' == y: # MAIN LOOP
 					if y is not '': # loop to skip the initial pass (y='')
@@ -128,9 +131,13 @@ if __name__ == '__main__':
 
 	iso_path = 'disk-{0}.iso'
 	for i in range(1, disk_num + 1):
-		isocmd = ('mkisofs -o {1} -rJU -iso-level 3 -graft-points --path-list {0}').format(graft_name.format(i), os.path.join(parse.options['output'], iso_path.format(i)))
+		isocmd = ('mkisofs -o {1} -rJU -iso-level 3 -graft-points --path-list {0}').format(comlpetePath(graft_name.format(i)), comlpetePath(iso_path.format(i)))
 	
 		print 'Executing command:'
 		print isocmd
-		#os.system(isocmd)
+		
+		if not parse.options['debug']:
+			os.system(isocmd)
+		else:
+			print 'Debug mode. No action done.'
 
