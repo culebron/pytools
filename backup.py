@@ -48,8 +48,7 @@ def padn(n, b = 2048):
 	return n - (n % b) + b if n % b > 0 else n
 
 if __name__ == '__main__':
-	def comlpetePath(path):
-		return os.path.join(parse.options['output'], path)
+	comlpetePath = lambda path: os.path.join(parse.options['output'], path)
 	
 	parse.shovel(parse_params)
 	
@@ -79,17 +78,17 @@ if __name__ == '__main__':
 	
 	command = 'find {0} -type f -readable -daystart '
 
-	def joiner(join, fmt, array):
-		if not parse.options[array]:
-			return ''
-		
-		return join.join([fmt.format(i) for i in parse.options[array]])
+	adds = map((lambda j, f, a:
+		j.join([f.format(i) for i in parse.options[a]]) if parse.options[a] else ''),
+		((' ', ' -not -path "{0}" ', 'exclude'),
+		(' -or ', '-path "{0}"', 'include'))
 	
-	command += joiner(' ', ' -not -path "{0}" ', 'exclude')
 	if parse.options['include']:
-		command += ('{0}' if len(parse.options['include']) < 2
-		else '\( {0} \)').format(joiner(' -or ', '-path "{0}"', 'include'))
-
+		if len(parse.options['include']) > 1:
+			adds[1] = '{0}'.format(adds[1])
+	
+	command += ''.join(adds)
+	
 	for i in dates:
 		command += ' -mtime {1}{0}'.format((date(*map(int, dates[i])) - date.today()).days, '+' if i == 'to' else '')
 	
