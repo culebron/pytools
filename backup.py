@@ -78,10 +78,10 @@ if __name__ == '__main__':
 	
 	command = 'find {0} -type f -readable -daystart '
 
-	adds = map((lambda j, f, a:
+	adds = map((lambda (j, f, a):
 		j.join([f.format(i) for i in parse.options[a]]) if parse.options[a] else ''),
 		((' ', ' -not -path "{0}" ', 'exclude'),
-		(' -or ', '-path "{0}"', 'include'))
+		(' -or ', '-path "{0}"', 'include')))
 	
 	if parse.options['include']:
 		if len(parse.options['include']) > 1:
