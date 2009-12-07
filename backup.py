@@ -77,15 +77,17 @@ if __name__ == '__main__':
 	removeAncestors(dirs)
 	
 	command = 'find {0} -type f -readable -daystart '
-
+	
+	o = parse.options
 	adds = map((lambda (j, f, a):
-		j.join([f.format(i) for i in parse.options[a]]) if parse.options[a] else ''),
+		j.join([f.format(i) for i in o[a]]) if o[a] else ''),
 		((' ', ' -not -path "{0}" ', 'exclude'),
 		(' -or ', '-path "{0}"', 'include')))
 	
-	if parse.options['include']:
-		if len(parse.options['include']) > 1:
-			adds[1] = '{0}'.format(adds[1])
+	if o['include']:
+		if len(o['include']) > 1:
+			adds[1] = '\( {0} \)'.format(adds[1])
+	del o
 	
 	command += ''.join(adds)
 	
