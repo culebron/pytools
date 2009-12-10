@@ -78,10 +78,14 @@ def create(opts, arguments):
 		if safe.catch(os.listdir, opts['docroot'], 'Document root (\'{0}\') exists but is not accessible.') != []: # try to list the directory. may fail if no access rights
 			safe.quit('docroot parameter was a non-empty directory (\'{0}\')'.format(opts['docroot']), 1)
 	else:
-		safe.catch(os.makedirs, opts['docroot'], 'Can\'t create document root directory \'{0}\'')
-	
-	safe.catch(os.chown, (opts['docroot'], int(os.getenv('SUDO_UID')), int(os.getenv('SUDO_GID'))), 'Can\'t change document root ownership \'{0}\'')
-	
+		l = ['/']
+		for i in os.path.normpath(os.path.abspath(opts['docroot'])).split('/')[1:]:
+			l.append(i)
+			p = os.path.join(*l)
+			if not os.path.isdir(p):
+				safe.catch(os.mkdir, p, 'Can\'t create document root directory \'{0}\'')
+				safe.catch(os.chown, (p, int(os.getenv('SUDO_UID')), int(os.getenv('SUDO_GID'))), 'Can\'t change document root ownership \'{0}\'')
+		del l, p
 
 	# create apache vhost file
 	new_conf = os.path.join(where, 'sites-available', opts['server'])
