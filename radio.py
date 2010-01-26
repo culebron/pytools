@@ -1,9 +1,7 @@
 #!/usr/bin/python
 
 import os, sys, re, shutil
-def z(a,b):
-	print a, b
-shutil.copy2 = z
+
 #from datetime import datetime # need only datetime format
 
 def freespace(p):
