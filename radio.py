@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os, sys, re, shutil
+
 #from datetime import datetime # need only datetime format
 
 def freespace(p):
@@ -34,7 +35,7 @@ files = []
 totalsize = 0
 freesize = freespace(dirto)
 
-for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {} \\;'): # run find command for mp3 files in the source directory
+for f in os.popen('find "'+ dirfrom + '" -iname \'*.mp3\' -type f -exec sha1sum {} \\;'): # run find command for mp3 files in the source directory
 	#fpath = os.path.join(dirfrom, f.replace('\n', '')) # make a full path to the file
 	mobj = re.match(r'([\da-f]{40})  (.*)\n', f)
 	if not mobj:
@@ -42,9 +43,10 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 	fhash, fpath = mobj.groups(0)
 	fdate = defdate # file's date is 1-1-1 by default
 	
-	mobj = re.search(r'(\d{2,4})\D(\d\d)\D(\d{2,4})\D(\d\d)\D(\d\d)\D(\d\d)\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
+	mobj = re.search(r'(\d{2,4})\D(\d\d)\D(\d{2,4})\D(\d\d)\D(\d\d)(\D(\d\d))?\.mp3$', fpath, re.I) # if it is in date format, then add date field (works both if file was d-m-y, and y-m-d)
 	if mobj:
-		grps = map(int, list(mobj.groups(0)))
+		matches = list(mobj.groups(0))
+		grps = map(int, matches[:5] + matches[-1:])
 		if grps[0] < 32:
 			grps[0], grps[2] = grps[2], grps[0]
 		fdate = grps # change file's date
@@ -58,7 +60,7 @@ for f in os.popen('find '+ dirfrom + ' -iname \'*.mp3\' -type f -exec sha1sum {}
 files.sort(key = lambda d: d.get('date'), reverse = True) # sort it by date, key is date 
 
 """targetfiles = {}
-for f in os.popen('find '+ dirto + ' -iname \'*.mp3\' -type f -exec sha1sum {} \\;'):
+for f in os.popen('find "'+ dirto + '" -iname \'*.mp3\' -type f -exec sha1sum {} \\;'):
 	mobj = re.match(r'([\da-f]{40})  (.*)\n', f)
 	if not mobj:
 		continue
